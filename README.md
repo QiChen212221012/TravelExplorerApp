@@ -30,7 +30,6 @@ This app allows users to explore and check in at nearby locations, take travel p
 
 ---
 
-```markdown
 ## 🚀 How to Run
 
 ```bash
@@ -43,6 +42,7 @@ npm install
 
 # Start development server
 npx expo start
+
 
 
 

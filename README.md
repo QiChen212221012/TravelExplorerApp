@@ -32,7 +32,6 @@ This app allows users to explore and check in at nearby locations, take travel p
 
 🚀 How to Run
 
-```bash
 # Clone the repository
 git clone https://github.com/QiChen212221012/TravelExplorerApp.git
 cd TravelExplorerApp
@@ -43,11 +42,11 @@ npm install
 # Start development server
 npx expo start
 
-
+---
 
 👤 Author
 
-Qi Chen  
+Qi Chen 
 Final Year Student at UWS  
 📅 Year: 2025  
 📬 GitHub: [QiChen212221012](https://github.com/QiChen212221012)

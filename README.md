@@ -45,7 +45,7 @@ npx expo start
 
 ---
 
-##👤 Author
+## 👤 Author
 Qi Chen
 Final Year Student at UWS
 📅 Year: 2025

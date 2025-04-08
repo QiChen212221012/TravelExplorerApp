@@ -30,6 +30,7 @@ This app allows users to explore and check in at nearby locations, take travel p
 
 ---
 
+```markdown
 ## 🚀 How to Run
 
 ```bash
@@ -43,14 +44,6 @@ npm install
 # Start development server
 npx expo start
 
----
-
-## 👤 Author
-
-**Qi Chen**  
-Final Year Student at UWS  
-📅 Year: 2025  
-📬 GitHub: [QiChen212221012](https://github.com/QiChen212221012)
 
 
 

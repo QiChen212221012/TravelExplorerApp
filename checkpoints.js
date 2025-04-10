@@ -42,4 +42,11 @@ export const checkpoints = [
         longitude: -3.19721,
         image: 'castle.png',
       },
+      {
+        id: 'pablo',
+        name: 'Pablo Building',
+        latitude: 55.84271,
+        longitude: -4.43012,
+        image: 'pablo.png',
+      },
   ];

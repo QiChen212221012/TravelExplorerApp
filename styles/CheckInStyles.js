@@ -15,6 +15,15 @@ const CheckInStyles = StyleSheet.create({
     elevation: 5,
     overflow: 'hidden',
   },
+  checkedCard: {
+    borderColor: '#ffd700',
+    borderWidth: 2,
+    shadowColor: '#ffd700',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 6,
+  },
   image: { width: '100%', height: 180 },
   cardContent: { padding: 16 },
   title: {
@@ -65,6 +74,40 @@ const CheckInStyles = StyleSheet.create({
     textAlign: 'center',
     paddingVertical: 8,
   },
+  
+  badgeOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  badgeCard: {
+    width: 280,
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 20,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 8,
+  },
+  badgeTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: '#333',
+  },
+  badgeImage: {
+    width: 120,
+    height: 120,
+    marginBottom: 12,
+  },
+  badgeClose: {
+    fontSize: 16,
+    color: '#00695c',
+    marginTop: 6,
+  },  
 });
 
 export default CheckInStyles;

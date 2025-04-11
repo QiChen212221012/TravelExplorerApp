@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -8,23 +8,27 @@ import {
   ScrollView,
   ActivityIndicator,
   TextInput,
+  Modal,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { checkpoints } from '../checkpoints';
 import styles from '../styles/CheckInStyles';
 
-// ✅ 替代 uuid 的唯一 ID 生成器
 const generateId = () => '_' + Math.random().toString(36).substr(2, 9);
 
 export default function CheckInScreen() {
+  const navigation = useNavigation();
   const [nearestCheckpoint, setNearestCheckpoint] = useState(null);
   const [loading, setLoading] = useState(true);
   const [note, setNote] = useState('');
   const [imageUri, setImageUri] = useState(null);
+  const [isCheckedIn, setIsCheckedIn] = useState(false);
+  const [showBadge, setShowBadge] = useState(false);
 
   const getImage = (imageName) => {
     switch (imageName) {
@@ -34,29 +38,49 @@ export default function CheckInScreen() {
       case 'airport.png': return require('../assets/airport.png');
       case 'accommodation.png': return require('../assets/accommodation.png');
       case 'castle.png': return require('../assets/castle.png');
-      case 'pablo.png': return require('../assets/pablo.png');
+      case 'Pablo.png': return require('../assets/Pablo.png');
+      case 'statue.png': return require('../assets/statue.png');
+      case 'Holmes.png': return require('../assets/Holmes.jpg');
       default: return require('../assets/library.png');
     }
   };
 
-  useEffect(() => {
-    (async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Permission to access location was denied');
-        return;
-      }
-      let location = await Location.getCurrentPositionAsync({});
-      const { latitude, longitude } = location.coords;
-      const closest = findNearestCheckpoint(latitude, longitude);
-      if (closest && closest.distance <= 50) {
-        setNearestCheckpoint(closest);
-      } else {
-        setNearestCheckpoint(null);
-      }
-      setLoading(false);
-    })();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      let isActive = true;
+      setLoading(true);
+
+      (async () => {
+        let { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          Alert.alert('Permission to access location was denied');
+          return;
+        }
+
+        let location = await Location.getCurrentPositionAsync({});
+        const { latitude, longitude } = location.coords;
+        const closest = findNearestCheckpoint(latitude, longitude);
+
+        if (isActive) {
+          if (closest && closest.distance <= 50) {
+            setNearestCheckpoint(closest);
+            const existing = await AsyncStorage.getItem('checkin_records');
+            const records = existing ? JSON.parse(existing) : [];
+            const alreadyCheckedIn = records.some((r) => r.place === closest.name);
+            setIsCheckedIn(alreadyCheckedIn);
+          } else {
+            setNearestCheckpoint(null);
+            setIsCheckedIn(false);
+          }
+          setLoading(false);
+        }
+      })();
+
+      return () => {
+        isActive = false;
+      };
+    }, [])
+  );
 
   const findNearestCheckpoint = (lat, lon) => {
     let nearest = null;
@@ -83,27 +107,32 @@ export default function CheckInScreen() {
     return R * c;
   };
 
-  const pickImage = async () => {
+  const pickFromGallery = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [4, 3],
       quality: 1,
     });
-
     if (!result.canceled) {
       setImageUri(result.assets[0].uri);
-    } else {
-      const cameraResult = await ImagePicker.launchCameraAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 1,
-      });
+    }
+  };
 
-      if (!cameraResult.canceled) {
-        setImageUri(cameraResult.assets[0].uri);
-      }
+  const takePhoto = async () => {
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert('Permission to access camera was denied');
+      return;
+    }
+    const cameraResult = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+    if (!cameraResult.canceled) {
+      setImageUri(cameraResult.assets[0].uri);
     }
   };
 
@@ -136,9 +165,24 @@ export default function CheckInScreen() {
 
       records.push(record);
       await AsyncStorage.setItem('checkin_records', JSON.stringify(records));
+
+      const badgeGiven = await AsyncStorage.getItem('badge_first_checkin');
+      if (!badgeGiven) {
+        setShowBadge(true);
+        await AsyncStorage.setItem('badge_first_checkin', 'true');
+      }
+
+      await fetch('https://example.com/checkin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(record),
+      });
+
       Alert.alert('✅ Check-in successful!');
       setNote('');
       setImageUri(null);
+      setIsCheckedIn(true);
+      navigation.navigate('Home', { refresh: true });
     } catch (error) {
       console.error(error);
       Alert.alert('❌ Check-in failed');
@@ -146,12 +190,17 @@ export default function CheckInScreen() {
   };
 
   return (
-    <LinearGradient colors={['#e0f7f4', '#c8f1fc']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={styles.container}>
+    <LinearGradient
+      colors={isCheckedIn ? ['#e0f7f4', '#ffd700'] : ['#e0f7f4', '#c8f1fc']}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 1 }}
+      style={styles.container}
+    >
       <ScrollView contentContainerStyle={styles.content}>
         {loading ? (
           <ActivityIndicator size="large" color="#00695c" />
         ) : nearestCheckpoint ? (
-          <View style={styles.card}>
+          <View style={[styles.card, isCheckedIn && styles.checkedCard]}>
             <Image source={getImage(nearestCheckpoint.image)} style={styles.image} />
             <View style={styles.cardContent}>
               <Text style={styles.title}>{nearestCheckpoint.name}</Text>
@@ -166,8 +215,11 @@ export default function CheckInScreen() {
                 value={note}
                 onChangeText={setNote}
               />
-              <TouchableOpacity onPress={pickImage} style={styles.pickButton}>
-                <Text style={{ color: '#00695c' }}>🖼️ Choose Photo</Text>
+              <TouchableOpacity onPress={pickFromGallery} style={styles.pickButton}>
+                <Text style={{ color: '#00695c' }}>🖼️ Choose from Gallery</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={takePhoto} style={styles.pickButton}>
+                <Text style={{ color: '#00695c' }}>📷 Take Photo</Text>
               </TouchableOpacity>
               {imageUri && <Image source={{ uri: imageUri }} style={styles.preview} />}
               <TouchableOpacity onPress={handleCheckIn}>
@@ -179,6 +231,18 @@ export default function CheckInScreen() {
           <Text style={{ color: '#444', fontSize: 16 }}>📍 You are not near any checkpoint</Text>
         )}
       </ScrollView>
+
+      <Modal visible={showBadge} transparent animationType="fade">
+        <View style={styles.badgeOverlay}>
+          <View style={styles.badgeCard}>
+            <Text style={styles.badgeTitle}>🏅 First Check-in Badge!</Text>
+            <Image source={require('../assets/first_badge.png')} style={styles.badgeImage} />
+            <TouchableOpacity onPress={() => setShowBadge(false)}>
+              <Text style={styles.badgeClose}>🎉 Thanks!</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </LinearGradient>
   );
 }

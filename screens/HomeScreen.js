@@ -1,32 +1,61 @@
-// screens/HomeScreen.js
-import React, { useEffect, useState } from 'react';
-import { View, Text, Button, StyleSheet, ActivityIndicator } from 'react-native';
-import MapView, { Marker } from 'react-native-maps'; // 显示地图和标记点
-import * as Location from 'expo-location'; // 获取定位权限和位置
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, Text, Button, StyleSheet, ActivityIndicator, Image } from 'react-native';
+import MapView, { Marker } from 'react-native-maps';
+import * as Location from 'expo-location';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
 
-import { checkpoints } from '../checkpoints'; // 自定义打卡点数据
-import { getDistanceFromLatLonInMeters } from '../utils/location'; // 计算两点间距离
+import { checkpoints } from '../checkpoints';
+import { getDistanceFromLatLonInMeters } from '../utils/location';
 
 export default function HomeScreen({ navigation }) {
-  const [location, setLocation] = useState(null); // 当前用户位置
-  const [nearestPoint, setNearestPoint] = useState(null); // 附近的打卡点
-  const [errorMsg, setErrorMsg] = useState(''); // 错误信息
+  const [location, setLocation] = useState(null);
+  const [nearestPoint, setNearestPoint] = useState(null);
+  const [errorMsg, setErrorMsg] = useState('');
+  const [checkedInPlaces, setCheckedInPlaces] = useState([]);
 
-  useEffect(() => {
-    // 请求定位权限并获取当前位置
-    (async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        setErrorMsg('Permission to access location was denied');
-        return;
-      }
-      let loc = await Location.getCurrentPositionAsync({});
+  const getImageSource = (filename) => {
+    switch (filename) {
+      case 'library.png': return require('../assets/library.png');
+      case 'campus.png': return require('../assets/campus.png');
+      case 'airport.png': return require('../assets/airport.png');
+      case 'accommodation.png': return require('../assets/accommodation.png');
+      case 'castle.png': return require('../assets/castle.png');
+      default: return require('../assets/library.png');
+    }
+  };
+
+  const loadData = async () => {
+    try {
+      const loc = await Location.getCurrentPositionAsync({});
       setLocation(loc.coords);
-    })();
-  }, []);
+
+      const data = await AsyncStorage.getItem('checkin_records');
+      if (data) {
+        const records = JSON.parse(data);
+        const places = records.map((r) => r.place);
+        setCheckedInPlaces(places);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  // ✅ 每次页面重新聚焦时刷新
+  useFocusEffect(
+    useCallback(() => {
+      (async () => {
+        let { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          setErrorMsg('Permission to access location was denied');
+          return;
+        }
+        await loadData();
+      })();
+    }, [])
+  );
 
   useEffect(() => {
-    // 每次位置更新时检查是否靠近某个打卡点
     if (location) {
       const near = checkpoints.find((point) => {
         const distance = getDistanceFromLatLonInMeters(
@@ -35,18 +64,17 @@ export default function HomeScreen({ navigation }) {
           point.latitude,
           point.longitude
         );
-        return distance < 50; // 50 米内算“已进入”
+        return distance < 50;
       });
       setNearestPoint(near || null);
     }
-  }, [location]);
+  }, [location, checkedInPlaces]);
 
-  if (errorMsg) return <Text>{errorMsg}</Text>; // 权限错误提示
-  if (!location) return <ActivityIndicator size="large" style={{ marginTop: 100 }} />; // 加载中
+  if (errorMsg) return <Text>{errorMsg}</Text>;
+  if (!location) return <ActivityIndicator size="large" style={{ marginTop: 100 }} />;
 
   return (
     <View style={styles.container}>
-      {/* 地图视图 */}
       <MapView
         style={styles.map}
         initialRegion={{
@@ -55,24 +83,34 @@ export default function HomeScreen({ navigation }) {
           latitudeDelta: 0.01,
           longitudeDelta: 0.01,
         }}
-        showsUserLocation // 显示蓝点
+        showsUserLocation
       >
-        {/* 打卡点标记 */}
-        {checkpoints.map((cp) => (
-          <Marker
-            key={cp.id}
-            coordinate={{ latitude: cp.latitude, longitude: cp.longitude }}
-            title={cp.name}
-          />
-        ))}
+        {checkpoints.map((cp) => {
+          const isCheckedIn = checkedInPlaces.includes(cp.name);
+          return (
+            <Marker
+              key={cp.id}
+              coordinate={{ latitude: cp.latitude, longitude: cp.longitude }}
+              title={cp.name}
+              pinColor={isCheckedIn ? 'gold' : 'red'}
+            />
+          );
+        })}
       </MapView>
 
-      {/* 信息栏 */}
       <View style={styles.info}>
         {nearestPoint ? (
           <>
             <Text>✅ Checkpoint reached: {nearestPoint.name}</Text>
-            <Button title="Go to Check-in Page" onPress={() => navigation.navigate('Check In')} />
+            <Image
+              source={getImageSource(nearestPoint.image)}
+              style={styles.thumbnail}
+              resizeMode="cover"
+            />
+            <Button
+              title="Go to Check-in Page"
+              onPress={() => navigation.navigate('Check In')}
+            />
           </>
         ) : (
           <Text>📍 You are not near any checkpoint</Text>
@@ -86,9 +124,16 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   map: { flex: 1 },
   info: {
-    padding: 10,
+    padding: 12,
     backgroundColor: '#fff',
     borderTopWidth: 1,
     borderColor: '#ccc',
+    alignItems: 'center',
+  },
+  thumbnail: {
+    width: '100%',
+    height: 120,
+    borderRadius: 8,
+    marginVertical: 8,
   },
 });

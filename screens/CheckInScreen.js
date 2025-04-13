@@ -175,7 +175,7 @@ export default function CheckInScreen() {
 
       const uniquePlaces = [...new Set(records.map(r => r.place))];
       const fourBadgeGiven = await AsyncStorage.getItem('badge_four_places');
-      if (!fourBadgeGiven && uniquePlaces.length >= 3) {
+      if (!fourBadgeGiven && uniquePlaces.length >= 4) {
         setShowFourBadge(true);
         await AsyncStorage.setItem('badge_four_places', 'true');
       }

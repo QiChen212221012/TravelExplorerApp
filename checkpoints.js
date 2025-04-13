@@ -17,9 +17,9 @@ export const checkpoints = [
     {
       id: 'university',
       name: 'University of Glasgow',
-      latitude: 55.87252,
-      longitude: -4.28973,
-      image: 'glasgow.png',
+      latitude: 55.87254,
+      longitude: -4.28992,
+      image: 'university.png',
     },
     {
         id: 'airport',
@@ -31,8 +31,8 @@ export const checkpoints = [
     {
         id: 'accommodation',
         name: 'UWS Lady Lane Accommodation',
-        latitude: 55.84303,
-        longitude: -4.43216,
+        latitude: 55.84301,
+        longitude: -4.43194,
         image: 'accommodation.png',
       },
       {
@@ -47,20 +47,20 @@ export const checkpoints = [
         name: 'Pablo Building',
         latitude: 55.84271,
         longitude: -4.43012,
-        image: 'Pablo.png',
+        image: 'pablo.png',
       },
       {
-        id: 'statue',
-        name: 'John Witherspoon Statue',
-        latitude: 55.84456,
-        longitude: -4.43117,
-        image: 'statue.png',
+        id: 'tower',
+        name: 'Tower Bridge',
+        latitude: 51.50558,
+        longitude: -0.07510,
+        image: 'tower.png',
       },
       {
         id: 'holmes',
         name: 'The Sherlock Holmes Museum',
         latitude: 51.52389,
         longitude: -0.15861,
-        image: 'Holmes.jpg',
+        image: 'holmes.png',
       },
   ];

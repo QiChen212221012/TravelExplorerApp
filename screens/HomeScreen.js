@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, Button, StyleSheet, ActivityIndicator, Image } from 'react-native';
+import { View, Text, Button, StyleSheet, ActivityIndicator, Image, Modal, TouchableOpacity } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -13,17 +13,24 @@ export default function HomeScreen({ navigation }) {
   const [nearestPoint, setNearestPoint] = useState(null);
   const [errorMsg, setErrorMsg] = useState('');
   const [checkedInPlaces, setCheckedInPlaces] = useState([]);
+  const [selectedPoint, setSelectedPoint] = useState(null);
 
-  const getImageSource = (filename) => {
-    switch (filename) {
-      case 'library.png': return require('../assets/library.png');
-      case 'campus.png': return require('../assets/campus.png');
-      case 'airport.png': return require('../assets/airport.png');
-      case 'accommodation.png': return require('../assets/accommodation.png');
-      case 'castle.png': return require('../assets/castle.png');
-      default: return require('../assets/library.png');
-    }
+  const imageMap = {
+    'library.png': require('../assets/library.png'),
+    'campus.png': require('../assets/campus.png'),
+    'airport.png': require('../assets/airport.png'),
+    'accommodation.png': require('../assets/accommodation.png'),
+    'castle.png': require('../assets/castle.png'),
+    'pablo.png': require('../assets/pablo.png'),
+    'tower.png': require('../assets/tower.png'),
+    'holmes.png': require('../assets/holmes.png'),
+    'university.png': require('../assets/university.png'),
+    // 添加你所有用到的图片名
   };
+  
+  const getImageSource = (filename) => {
+    return imageMap[filename] || imageMap['library.png'];
+  };  
 
   const loadData = async () => {
     try {
@@ -41,7 +48,6 @@ export default function HomeScreen({ navigation }) {
     }
   };
 
-  // ✅ 每次页面重新聚焦时刷新
   useFocusEffect(
     useCallback(() => {
       (async () => {
@@ -93,29 +99,30 @@ export default function HomeScreen({ navigation }) {
               coordinate={{ latitude: cp.latitude, longitude: cp.longitude }}
               title={cp.name}
               pinColor={isCheckedIn ? 'gold' : 'red'}
+              onPress={() => setSelectedPoint(cp)}
             />
           );
         })}
       </MapView>
 
-      <View style={styles.info}>
-        {nearestPoint ? (
-          <>
-            <Text>✅ Checkpoint reached: {nearestPoint.name}</Text>
-            <Image
-              source={getImageSource(nearestPoint.image)}
-              style={styles.thumbnail}
-              resizeMode="cover"
-            />
+      {selectedPoint && (
+        <View style={styles.info}>
+          <Text style={{ fontWeight: 'bold' }}>{selectedPoint.name}</Text>
+          <Image
+            source={getImageSource(selectedPoint.image)}
+            style={styles.thumbnail}
+            resizeMode="cover"
+          />
+          {nearestPoint && nearestPoint.name === selectedPoint.name ? (
             <Button
               title="Go to Check-in Page"
               onPress={() => navigation.navigate('Check In')}
             />
-          </>
-        ) : (
-          <Text>📍 You are not near any checkpoint</Text>
-        )}
-      </View>
+          ) : (
+            <Text style={{ color: '#666', marginTop: 5 }}>📍 Move closer to check in</Text>
+          )}
+        </View>
+      )}
     </View>
   );
 }
@@ -131,9 +138,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   thumbnail: {
-    width: '100%',
-    height: 120,
-    borderRadius: 8,
+    width: '90%',
+    height: 180,
+    borderRadius: 10,
     marginVertical: 8,
+    resizeMode: 'cover',
   },
 });

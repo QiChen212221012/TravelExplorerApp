@@ -1,5 +1,5 @@
 // screens/BadgesScreen.js
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -8,26 +8,41 @@ import {
   ScrollView,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback } from 'react';
 
 export default function BadgesScreen() {
   const [badges, setBadges] = useState([]);
 
-  useEffect(() => {
-    (async () => {
-      const earnedBadges = [];
-      const firstBadge = await AsyncStorage.getItem('badge_first_checkin');
-      if (firstBadge === 'true') {
-        earnedBadges.push({
-          id: 'first',
-          name: 'First Check-in',
-          image: require('../assets/first_badge.png'),
-          description: 'Awarded for your very first check-in! 🎉',
-        });
-      }
-      // Add more badges here in the future
-      setBadges(earnedBadges);
-    })();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      (async () => {
+        const earnedBadges = [];
+
+        const firstBadge = await AsyncStorage.getItem('badge_first_checkin');
+        if (firstBadge === 'true') {
+          earnedBadges.push({
+            id: 'first',
+            name: 'First Check-in',
+            image: require('../assets/first_badge.png'),
+            description: 'Awarded for your very first check-in! 🎉',
+          });
+        }
+
+        const explorerBadge = await AsyncStorage.getItem('badge_four_places'); // ✅ 当前是 4 个地点
+        if (explorerBadge === 'true') {
+          earnedBadges.push({
+            id: 'explorer',
+            name: 'Explorer',
+            image: require('../assets/four_badge.png'),
+            description: 'Unlocked after checking in at 4 different places! 🗺️',
+          });
+        }
+
+        setBadges(earnedBadges);
+      })();
+    }, [])
+  );
 
   return (
     <ScrollView contentContainerStyle={styles.container}>

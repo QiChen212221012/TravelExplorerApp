@@ -29,6 +29,7 @@ export default function CheckInScreen() {
   const [imageUri, setImageUri] = useState(null);
   const [isCheckedIn, setIsCheckedIn] = useState(false);
   const [showBadge, setShowBadge] = useState(false);
+  const [showFourBadge, setShowFourBadge] = useState(false);
 
   const getImage = (imageName) => {
     switch (imageName) {
@@ -38,9 +39,9 @@ export default function CheckInScreen() {
       case 'airport.png': return require('../assets/airport.png');
       case 'accommodation.png': return require('../assets/accommodation.png');
       case 'castle.png': return require('../assets/castle.png');
-      case 'Pablo.png': return require('../assets/Pablo.png');
-      case 'statue.png': return require('../assets/statue.png');
-      case 'Holmes.png': return require('../assets/Holmes.jpg');
+      case 'pablo.png': return require('../assets/pablo.png');
+      case 'tower.png': return require('../assets/tower.png');
+      case 'holmes.png': return require('../assets/holmes.png');
       default: return require('../assets/library.png');
     }
   };
@@ -172,6 +173,13 @@ export default function CheckInScreen() {
         await AsyncStorage.setItem('badge_first_checkin', 'true');
       }
 
+      const uniquePlaces = [...new Set(records.map(r => r.place))];
+      const fourBadgeGiven = await AsyncStorage.getItem('badge_four_places');
+      if (!fourBadgeGiven && uniquePlaces.length >= 3) {
+        setShowFourBadge(true);
+        await AsyncStorage.setItem('badge_four_places', 'true');
+      }
+
       await fetch('https://example.com/checkin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -239,6 +247,18 @@ export default function CheckInScreen() {
             <Image source={require('../assets/first_badge.png')} style={styles.badgeImage} />
             <TouchableOpacity onPress={() => setShowBadge(false)}>
               <Text style={styles.badgeClose}>🎉 Thanks!</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal visible={showFourBadge} transparent animationType="fade">
+        <View style={styles.badgeOverlay}>
+          <View style={styles.badgeCard}>
+            <Text style={styles.badgeTitle}>🌟 Explorer Badge Unlocked!</Text>
+            <Image source={require('../assets/four_badge.png')} style={styles.badgeImage} />
+            <TouchableOpacity onPress={() => setShowFourBadge(false)}>
+              <Text style={styles.badgeClose}>🙌 Awesome!</Text>
             </TouchableOpacity>
           </View>
         </View>

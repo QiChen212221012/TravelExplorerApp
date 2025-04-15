@@ -140,18 +140,18 @@ export default function CheckInScreen() {
   const handleCheckIn = async () => {
     try {
       const record = {
-        place: nearestCheckpoint.name,
-        time: new Date().toISOString(),
+        place: nearestCheckpoint.name,  // 记录打卡点名称
+        time: new Date().toISOString(),  // 当前时间戳
         coords: {
           latitude: nearestCheckpoint.latitude,
           longitude: nearestCheckpoint.longitude,
         },
         notes: [
           {
-            id: generateId(),
-            text: note,
-            image: imageUri,
-            time: new Date().toISOString(),
+            id: generateId(),  // 每条备注唯一 ID
+            text: note,    // 用户输入的备注文字
+            image: imageUri,  // 用户上传/拍摄的图片（可选）
+            time: new Date().toISOString(),  // 备注创建时间
           },
         ],
       };

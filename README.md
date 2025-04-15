@@ -47,7 +47,7 @@ TravelExplorerApp allows modern travellers to **explore locations**, **check in 
 
 ## 📦 Folder Structure
 
-TravelExplorerApp/ ├── screens/ │ ├── HomeScreen.js # Map + nearby point detection │ ├── CheckInScreen.js # Main check-in logic │ ├── DiaryScreen.js # Full CRUD of check-in logs │ └── BadgesScreen.js # Badge showcase ├── assets/ # Icons, images, badges ├── checkpoints.js # JSON-like list of coordinates ├── styles/ # Modular StyleSheet files └── App.js # App entry point with navigation
+<pre> TravelExplorerApp/ ├── App.js # App entry point with navigation setup ├── checkpoints.js # Predefined checkpoints with GPS coordinates ├── assets/ # Static assets: icons, images, badges │ ├── screens/ # All main app screens │ ├── HomeScreen.js # Shows map and current location, detects nearby checkpoints │ ├── CheckInScreen.js # Main check-in logic: GPS validation + photo/note input │ ├── DiaryScreen.js # Displays and manages check-in records (CRUD) │ └── BadgesScreen.js # Displays earned achievement badges │ ├── components/ # (Optional) Shared UI components (e.g., modals, card views) ├── styles/ # Modular StyleSheet files for each screen/component └── utils/ # Utility functions (e.g., Haversine distance calculation) </pre>
 
 
 ---
@@ -69,7 +69,13 @@ npx expo start --tunnel
 Then scan the QR code using Expo Go on iOS/Android to test on real devices.
 ✅ For image + camera permissions, allow access when prompted.
 
-📌 Project Highlights
+
+---
+
+## 🚀 How to Run Locally
+
+```bash
+
 Built with modern React Hooks: useState, useEffect, and useFocusEffect
 
 Offers full CRUD operations for local data using AsyncStorage

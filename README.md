@@ -69,13 +69,7 @@ npx expo start --tunnel
 Then scan the QR code using Expo Go on iOS/Android to test on real devices.
 ✅ For image + camera permissions, allow access when prompted.
 
-
----
-
-## 🚀 How to Run Locally
-
-```bash
-
+📌 Project Highlights
 Built with modern React Hooks: useState, useEffect, and useFocusEffect
 
 Offers full CRUD operations for local data using AsyncStorage
